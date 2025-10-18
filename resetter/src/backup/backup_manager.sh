@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Cargar módulos de soporte
+source "$SCRIPT_DIR/src/backup/compression.sh"
+source "$SCRIPT_DIR/src/backup/encryption.sh"
+source "$SCRIPT_DIR/src/reset/package_restorer.sh" # Para la función de backup de paquetes
+
 BACKUP_MANAGER_VERSION="3.0"
 
 # Flujo principal de backup
@@ -171,25 +176,87 @@ backup_home_directory() {
     done
 }
 
-# Placeholder: Backup de configs del sistema
+# Backup de configuraciones críticas del sistema desde /etc
 backup_system_configs() {
-    log_warning "Funcionalidad de backup de configs de sistema no implementada."
+    local temp_dir="$1"
+    log_info "Respaldando configuraciones críticas del sistema..."
+
+    local config_backup_dir="${temp_dir}/system_configs"
+    mkdir -p "$config_backup_dir"
+
+    local critical_configs=(
+        "/etc/fstab"
+        "/etc/hostname"
+        "/etc/hosts"
+        "/etc/network/interfaces"
+        "/etc/resolv.conf"
+        "/etc/nsswitch.conf"
+        "/etc/sudoers"
+        "/etc/sudoers.d/"
+    )
+
+    for config_path in "${critical_configs[@]}"; do
+        if [[ -e "$config_path" ]]; then
+            cp -aR "$config_path" "$config_backup_dir/"
+        fi
+    done
+    log_success "Copia de seguridad de configuraciones del sistema completada."
 }
-# Placeholder: Backup de lista de paquetes
+
+# Backup de la lista de paquetes instalados por el usuario
 backup_package_list() {
-    log_warning "Funcionalidad de backup de lista de paquetes no implementada."
+    local temp_dir="$1"
+    local package_list_file="${temp_dir}/packages.list"
+
+    # Reutiliza la función del módulo de restauración de paquetes
+    backup_user_packages_list "$package_list_file"
 }
-# Placeholder: Backup de configs de servicios
+
+# Backup de configuraciones de servicios comunes (ej: web servers)
 backup_service_configs() {
-    log_warning "Funcionalidad de backup de configs de servicios no implementada."
+    local temp_dir="$1"
+    log_info "Respaldando configuraciones de servicios..."
+
+    local service_config_dir="${temp_dir}/service_configs"
+    mkdir -p "$service_config_dir"
+
+    # Ejemplo para Nginx y Apache
+    if [[ -d "/etc/nginx" ]]; then
+        cp -aR "/etc/nginx" "$service_config_dir/"
+        log_info "Configuración de Nginx respaldada."
+    fi
+    if [[ -d "/etc/apache2" ]]; then
+        cp -aR "/etc/apache2" "$service_config_dir/"
+        log_info "Configuración de Apache2 respaldada."
+    fi
 }
-# Placeholder: Backup de datos personalizados
+
+# Permite al usuario especificar un directorio personalizado para el backup
 backup_custom_data() {
-    log_warning "Funcionalidad de backup de datos personalizados no implementada."
+    local temp_dir="$1"
+    read -rp "Introduce la ruta absoluta al directorio personalizado que quieres respaldar: " custom_path
+
+    if [[ -d "$custom_path" ]]; then
+        log_info "Respaldando directorio personalizado: $custom_path"
+        local custom_backup_dir="${temp_dir}/custom_data"
+        mkdir -p "$custom_backup_dir"
+        cp -aR "$custom_path" "$custom_backup_dir/"
+        log_success "Directorio personalizado respaldado."
+    else
+        log_warning "La ruta '$custom_path' no es un directorio válido. Se omitirá."
+    fi
 }
-# Placeholder: Backup completo del sistema
+
+# Realiza un backup completo llamando a todas las funciones de backup individuales
 backup_complete_system() {
-    log_warning "Funcionalidad de backup completo del sistema no implementada."
+    local temp_dir="$1"
+    log_info "Iniciando backup completo del sistema..."
+
+    backup_home_directory "$temp_dir"
+    backup_system_configs "$temp_dir"
+    backup_package_list "$temp_dir"
+    backup_service_configs "$temp_dir"
+    backup_docker_data "$temp_dir"
 }
 
 # Backup de datos Docker
@@ -277,34 +344,41 @@ EOF
     chmod +x "$temp_dir/restore_docker.sh"
 }
 
-# Comprimir y cifrar backup
+# Comprimir y, opcionalmente, cifrar el directorio temporal del backup
 compress_and_encrypt() {
     local temp_dir="$1"
     local backup_name="$2"
     local password="$3"
 
-    local backup_file="./resetter-data/backups/${backup_name}.tar.gz"
+    # Define el directorio de salida para los backups
+    local output_dir="./resetter-data/backups"
 
-    log_info "Comprimiendo backup..."
+    # 1. Comprimir el directorio
+    local compressed_file
+    compressed_file=$(compress_directory "$temp_dir" "$backup_name" "$output_dir")
 
-    # Crear archivo tar
-    tar -czf "$backup_file" -C "$temp_dir" .
-
-    # Cifrar si se especificó contraseña
-    if [[ -n "$password" ]]; then
-        log_info "Cifrando backup..."
-        local encrypted_file="${backup_file}.gpg"
-
-        echo "$password" | gpg --batch --yes --passphrase-fd 0 \
-            --symmetric --cipher-algo AES256 \
-            --output "$encrypted_file" "$backup_file"
-
-        # Eliminar sin cifrar
-        rm "$backup_file"
-        backup_file="$encrypted_file"
+    if [[ $? -ne 0 ]]; then
+        log_error "El proceso de backup se detuvo debido a un error de compresión."
+        return 1
     fi
 
-    echo "$backup_file"
+    # 2. Cifrar el archivo comprimido si se proporcionó una contraseña
+    if [[ -n "$password" ]]; then
+        local encrypted_file
+        encrypted_file=$(encrypt_file "$compressed_file" "$password")
+
+        if [[ $? -eq 0 ]]; then
+            # Si el cifrado fue exitoso, eliminamos el archivo comprimido sin cifrar
+            rm "$compressed_file"
+            echo "$encrypted_file"
+        else
+            log_error "El proceso de backup se detuvo debido a un error de cifrado."
+            return 1
+        fi
+    else
+        # Si no hay contraseña, devolvemos la ruta al archivo comprimido
+        echo "$compressed_file"
+    fi
 }
 
 # Placeholder: Verificar backup
