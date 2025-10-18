@@ -12,9 +12,12 @@ source "$SCRIPT_DIR/src/core/error_handler.sh"
 source "$SCRIPT_DIR/src/core/distribution_detector.sh"
 source "$SCRIPT_DIR/src/ui/language_manager.sh"
 source "$SCRIPT_DIR/src/ui/interactive_menu.sh"
+source "$SCRIPT_DIR/src/ui/warning_system.sh"
+source "$SCRIPT_DIR/src/ui/progress_display.sh"
 source "$SCRIPT_DIR/src/backup/backup_manager.sh"
 source "$SCRIPT_DIR/src/dryrun/dry_run_simulator.sh"
 source "$SCRIPT_DIR/src/reset/grub_manager.sh"
+source "$SCRIPT_DIR/src/reset/system_resetter.sh" # Orquestador principal
 
 # Inicialización
 initialize_resetter() {

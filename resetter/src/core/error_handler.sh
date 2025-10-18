@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # COLORES Y FORMATOS
-RED='\\033[0;31m'
-GREEN='\\033[0;32m'
-YELLOW='\\033[1;33m'
-BLUE='\\033[0;34m'
-NC='\\033[0m'
-BOLD='\\033[1m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+BOLD='\033[1m'
 
 # FUNCIONES DE LOG
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -121,17 +121,5 @@ check_prerequisites() {
     log_success "Todos los requisitos verificados"
 }
 
-# Función de seguridad para operaciones críticas
-safety_check() {
-    local operation="$1"
-
-    echo "🚨 OPERACIÓN CRÍTICA: $operation"
-    echo "Esta acción no se puede deshacer fácilmente."
-
-    read -p "¿Estás absolutamente seguro? (escribe 'CONFIRMAR' para continuar): " confirmation
-
-    if [[ "$confirmation" != "CONFIRMAR" ]]; then
-        log_warning "Operación cancelada por el usuario"
-        handle_error "USER_ABORT" "Usuario canceló la operación crítica"
-    fi
-}
+# La función de seguridad 'safety_check' ha sido movida a 'warning_system.sh'
+# como 'confirm_critical_action' para centralizar la lógica de UI.

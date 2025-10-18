@@ -1,3 +1,6 @@
+# Ignorar el directorio de la versión antigua
+/Resetter/
+
 # Ignorar todos los datos de la aplicación generados en tiempo de ejecución
 /resetter-data/
 
