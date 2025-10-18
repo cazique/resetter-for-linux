@@ -1,1 +1,2 @@
-I have decided to retire this project due to lack of time for maintenance. Also, I don't use Linux anymore and maintaining it is a pain so I'm retiring it. If anyone else wants to maintain it be my guest.
+# Resetter for Linux
+Herramienta de restauración de sistemas Linux.
