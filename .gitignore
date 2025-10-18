@@ -1,0 +1,25 @@
+# Ignorar todos los datos de la aplicación generados en tiempo de ejecución
+/resetter-data/
+
+# Mantener los directorios de datos, pero ignorar su contenido
+!/resetter-data/config/
+!/resetter-data/backups/
+!/resetter-data/logs/
+!/resetter-data/reports/
+!/resetter-data/temp/
+/resetter-data/config/*
+/resetter-data/backups/*
+/resetter-data/logs/*
+/resetter-data/reports/*
+/resetter-data/temp/*
+
+# Mantener los directorios con un fichero .gitkeep
+!/resetter-data/config/.gitkeep
+!/resetter-data/backups/.gitkeep
+!/resetter-data/logs/.gitkeep
+!/resetter-data/reports/.gitkeep
+!/resetter-data/temp/.gitkeep
+
+# Ficheros temporales de edición
+*.swp
+*.swo
