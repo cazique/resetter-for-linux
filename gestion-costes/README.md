@@ -64,6 +64,7 @@ Cada cambio en `gestion-costes/` compila el APK automáticamente (GitHub Actions
 **https://github.com/cazique/resetter-for-linux/releases/download/apk-latest/gestion-costes.apk**
 
 Ábrelo en el navegador del móvil → descargar → abrir → permitir *instalar apps de origen desconocido*.
+(Móviles antiguos de 32 bits: `gestion-costes-32bits.apk` en la misma release.)
 Estado de la compilación: pestaña **Actions** del repositorio (tarda unos 15-25 min).
 
 ### Opción C · Instalar el APK en el móvil (app independiente)

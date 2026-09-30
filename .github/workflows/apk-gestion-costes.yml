@@ -47,15 +47,24 @@ jobs:
 
       - name: Compilar APK
         run: |
-          flet build apk --yes --skip-flutter-doctor --no-rich-output -v \
+          # Un APK por arquitectura: el de arm64 (casi todos los móviles actuales) pesa ~1/3
+          flet build apk --yes --skip-flutter-doctor --no-rich-output -v --split-per-abi \
             --build-number ${{ github.run_number }}
           ls -la build/apk
-          cp "$(ls build/apk/*.apk | head -n1)" ../gestion-costes.apk
+          for f in build/apk/*.apk; do
+            case "$f" in
+              *arm64*)   cp "$f" ../gestion-costes.apk ;;
+              *armeabi*) cp "$f" ../gestion-costes-32bits.apk ;;
+            esac
+          done
+          # Por si cambia el nombre de los ficheros: nunca publicar sin APK principal
+          [ -f ../gestion-costes.apk ] || cp "$(ls build/apk/*.apk | head -n1)" ../gestion-costes.apk
+          ls -la ../*.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: gestion-costes-apk
-          path: gestion-costes.apk
+          path: gestion-costes*.apk
 
       - name: Publicar descarga directa (release "apk-latest")
         working-directory: .
@@ -63,7 +72,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete apk-latest --yes --cleanup-tag || true
-          gh release create apk-latest gestion-costes.apk \
+          gh release create apk-latest gestion-costes*.apk \
             --prerelease --target "${{ github.sha }}" \
             --title "Gestión de Costes · APK de prueba (#${{ github.run_number }})" \
-            --notes "Compilado desde \`${{ github.ref_name }}\` (${{ github.sha }}). Descarga gestion-costes.apk desde el móvil e instálalo."
+            --notes "Compilado desde \`${{ github.ref_name }}\` (${{ github.sha }}). Descarga gestion-costes.apk desde el móvil e instálalo (gestion-costes-32bits.apk solo para móviles antiguos de 32 bits)."
