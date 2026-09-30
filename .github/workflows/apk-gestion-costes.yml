@@ -1,0 +1,69 @@
+# Compila el APK de Android de gestion-costes y lo publica como descarga directa:
+#   https://github.com/<owner>/<repo>/releases/download/apk-latest/gestion-costes.apk
+name: APK Gestión de Costes
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "gestion-costes/**"
+      - ".github/workflows/apk-gestion-costes.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-gestion-costes
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: gestion-costes
+    env:
+      PYTHONUTF8: "1"
+      FLET_CLI_NO_RICH_OUTPUT: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Tests
+        run: pytest -q
+
+      - name: Compilar APK
+        run: |
+          flet build apk --yes --skip-flutter-doctor --no-rich-output -v \
+            --build-number ${{ github.run_number }}
+          ls -la build/apk
+          cp "$(ls build/apk/*.apk | head -n1)" ../gestion-costes.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gestion-costes-apk
+          path: gestion-costes.apk
+
+      - name: Publicar descarga directa (release "apk-latest")
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk-latest --yes --cleanup-tag || true
+          gh release create apk-latest gestion-costes.apk \
+            --prerelease --target "${{ github.sha }}" \
+            --title "Gestión de Costes · APK de prueba (#${{ github.run_number }})" \
+            --notes "Compilado desde \`${{ github.ref_name }}\` (${{ github.sha }}). Descarga gestion-costes.apk desde el móvil e instálalo."

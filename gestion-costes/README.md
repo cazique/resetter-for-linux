@@ -58,6 +58,14 @@ archivo, la app se recarga sola.
 
 > En las opciones A y B los datos (base de datos y fotos) se guardan en el PC, en `datos/`.
 
+### Opción C0 · Solo con el móvil (sin PC): APK compilado por GitHub
+Cada cambio en `gestion-costes/` compila el APK automáticamente (GitHub Actions) y lo publica aquí:
+
+**https://github.com/cazique/resetter-for-linux/releases/download/apk-latest/gestion-costes.apk**
+
+Ábrelo en el navegador del móvil → descargar → abrir → permitir *instalar apps de origen desconocido*.
+Estado de la compilación: pestaña **Actions** del repositorio (tarda unos 15-25 min).
+
 ### Opción C · Instalar el APK en el móvil (app independiente)
 ```bash
 flet build apk

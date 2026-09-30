@@ -21,8 +21,13 @@ def directorio_datos() -> Path:
     En el APK, Flet define FLET_APP_STORAGE_DATA (almacenamiento privado de la app);
     en PC/servidor se usa ./datos.
     """
-    base = os.getenv("GESTION_DATA_DIR") or os.getenv("FLET_APP_STORAGE_DATA") or "datos"
-    ruta = Path(base)
+    proyecto = Path(__file__).resolve().parents[1]
+    flet_data = os.getenv("FLET_APP_STORAGE_DATA")
+    # `flet run` (desarrollo) apunta a <proyecto>/.flet/storage/data: preferimos ./datos
+    # para que la BD sea la misma con `python main.py`, `flet run` y scripts/datos_demo.py
+    if flet_data and ".flet" in Path(flet_data).parts:
+        flet_data = None
+    ruta = Path(os.getenv("GESTION_DATA_DIR") or flet_data or proyecto / "datos").resolve()
     ruta.mkdir(parents=True, exist_ok=True)
     return ruta
 
