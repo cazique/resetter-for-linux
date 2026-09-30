@@ -1,0 +1,36 @@
+[project]
+name = "gestion-costes"
+version = "0.1.0"
+description = "Control de costes: facturas de proveedores con OCR/IA y partes de trabajo"
+requires-python = ">=3.10"
+dependencies = [
+  "flet==1.0.3",
+  "sqlalchemy>=2.0,<3",
+  "pydantic>=2.7,<3",
+  "python-dotenv>=1.0",
+  "pillow>=10.0",
+  "openpyxl>=3.1",
+  "google-genai>=1.0",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.60"]
+postgres = ["psycopg[binary]>=3.1"]
+dev = ["pytest>=8.0", "flet[all]==1.0.3"]
+
+[tool.flet]
+org = "es.gestioncostes"
+product = "Gestión de Costes"
+company = "Gestión de Costes"
+copyright = "2026"
+
+[tool.flet.app]
+path = "."
+exclude = ["tests", "datos", ".env", "*.db", ".venv"]
+
+[tool.flet.android.permission]
+"android.permission.INTERNET" = true
+"android.permission.CAMERA" = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

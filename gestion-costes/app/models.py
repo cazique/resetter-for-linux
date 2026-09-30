@@ -42,6 +42,7 @@ Porcentaje = Numeric(5, 2)
 
 class EstadoPago(str, enum.Enum):
     PENDIENTE = "pendiente"
+    PARCIAL = "parcial"
     PAGADO = "pagado"
 
 
@@ -72,6 +73,7 @@ class Proveedor(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(200), index=True)
     nif: Mapped[str] = mapped_column(String(15), unique=True, index=True)
+    direccion: Mapped[str | None] = mapped_column(String(300))
     email: Mapped[str | None] = mapped_column(String(120))
     telefono: Mapped[str | None] = mapped_column(String(30))
     # Categoría que se propone por defecto al escanear facturas de este proveedor
@@ -140,6 +142,7 @@ class Factura(TimestampMixin, Base):
         Enum(EstadoPago, native_enum=False, length=12), default=EstadoPago.PENDIENTE, index=True
     )
     fecha_pago: Mapped[date | None] = mapped_column(Date)
+    importe_pagado: Mapped[Decimal] = mapped_column(Dinero, default=Decimal("0"))
 
     archivo_url: Mapped[str | None] = mapped_column(String(500))  # ruta local, S3, etc.
     # Trazabilidad del OCR
@@ -162,6 +165,10 @@ class Factura(TimestampMixin, Base):
     @property
     def trimestre_label(self) -> str:
         return etiqueta_trimestre(self.trimestre, self.anio)
+
+    @property
+    def pendiente(self) -> Decimal:
+        return (self.total or Decimal("0")) - (self.importe_pagado or Decimal("0"))
 
     @property
     def tipos_iva(self) -> str:

@@ -49,6 +49,7 @@ class _Base(BaseModel):
 class ProveedorBase(_Base):
     nombre: str = Field(min_length=2, max_length=200)
     nif: str = Field(description="CIF/NIF/NIE; se admite NIF-IVA 'ESB12345678'")
+    direccion: str | None = None
     email: str | None = None
     telefono: str | None = None
     categoria_defecto_id: int | None = None
@@ -132,10 +133,21 @@ class FacturaBase(_Base):
     proyecto_id: int | None = None
     estado_pago: EstadoPago = EstadoPago.PENDIENTE
     fecha_pago: date | None = None
+    importe_pagado: DineroOpt = None  # obligatorio solo en pagos parciales
     archivo_url: str | None = None
     ocr_confianza: float | None = Field(default=None, ge=0, le=1)
     requiere_revision: bool = False
     notas: str | None = None
+
+    @field_validator("numero", mode="before")
+    @classmethod
+    def _numero_ticket(cls, v, info):
+        """Tickets sin número: se genera 'SN-AAAAMMDD-xxxx' (único por proveedor)."""
+        if v is None or not str(v).strip():
+            import uuid
+
+            return f"SN-{date.today():%Y%m%d}-{uuid.uuid4().hex[:4].upper()}"
+        return v
 
     @field_validator("lineas_iva")
     @classmethod
@@ -177,11 +189,23 @@ class FacturaBase(_Base):
             self.total = calculado
         elif abs(self.total - calculado) > TOLERANCIA * max(1, len(self.lineas_iva)):
             raise ValueError(f"El total {self.total} no cuadra con base+IVA-IRPF = {calculado}")
-        if self.estado_pago is EstadoPago.PAGADO and self.fecha_pago is None:
-            self.fecha_pago = date.today()
+        _normalizar_pago(self)
         if self.fecha_emision > date.today():
             raise ValueError("La fecha de emisión no puede ser futura")
         return self
+
+
+def _normalizar_pago(f) -> None:
+    """Coherencia estado ↔ importe pagado (compartido por alta y actualización)."""
+    if f.estado_pago is EstadoPago.PAGADO:
+        f.importe_pagado = f.total
+        f.fecha_pago = f.fecha_pago or date.today()
+    elif f.estado_pago is EstadoPago.PENDIENTE:
+        f.importe_pagado, f.fecha_pago = Decimal("0"), None
+    elif f.estado_pago is EstadoPago.PARCIAL:
+        if f.importe_pagado is None or not (0 < f.importe_pagado < f.total):
+            raise ValueError(f"En un pago parcial el importe pagado debe estar entre 0 y {f.total}")
+        f.fecha_pago = f.fecha_pago or date.today()
 
 
 class FacturaCreate(FacturaBase):
@@ -204,6 +228,7 @@ class FacturaUpdate(_Base):
     proyecto_id: int | None = None
     estado_pago: EstadoPago | None = None
     fecha_pago: date | None = None
+    importe_pagado: DineroOpt = None
     requiere_revision: bool | None = None
     notas: str | None = None
 
@@ -225,6 +250,7 @@ class FacturaRead(_Base):
     proyecto_id: int | None = None
     estado_pago: EstadoPago
     fecha_pago: date | None = None
+    importe_pagado: Decimal
     archivo_url: str | None = None
     ocr_confianza: float | None = None
     requiere_revision: bool

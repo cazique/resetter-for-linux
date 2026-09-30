@@ -1,4 +1,6 @@
 # Núcleo (PASO 1)
+flet[all]==1.0.3          # interfaz (PASO 4); en el APK se usa pyproject.toml
+openpyxl>=3.1             # exportación Excel (PASO 3)
 sqlalchemy>=2.0,<3
 pydantic>=2.7,<3
 python-dotenv>=1.0

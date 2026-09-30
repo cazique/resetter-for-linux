@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from datetime import date
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 CENTIMO = Decimal("0.01")
 
@@ -27,7 +27,10 @@ def a_dinero(valor) -> Decimal | None:
         else:
             v = v.replace(",", ".")
         valor = v
-    return Decimal(str(valor)).quantize(CENTIMO, rounding=ROUND_HALF_UP)
+    try:
+        return Decimal(str(valor)).quantize(CENTIMO, rounding=ROUND_HALF_UP)
+    except InvalidOperation:
+        raise ValueError(f"Importe no válido: {valor!r}") from None
 
 
 # ---------------------------------------------------------------- trimestres
