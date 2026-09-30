@@ -1,0 +1,15 @@
+# Núcleo (PASO 1)
+sqlalchemy>=2.0,<3
+pydantic>=2.7,<3
+python-dotenv>=1.0
+
+# OCR / IA de visión (PASO 2) - basta con instalar el proveedor que uses
+pillow>=10.0
+google-genai>=1.0          # Gemini
+openai>=1.60               # GPT-4o-mini
+
+# Producción con PostgreSQL (descomentar)
+# psycopg[binary]>=3.1
+
+# Tests
+pytest>=8.0
