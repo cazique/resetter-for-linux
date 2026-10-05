@@ -1,0 +1,19 @@
+flask==3.0.2
+flask-sqlalchemy==3.1.1
+flask-migrate==4.0.7
+flask-jwt-extended==4.6.0
+flask-cors==4.0.0
+marshmallow-sqlalchemy==1.0.0
+pillow==10.2.0
+opencv-python-headless==4.9.0.80
+reportlab==4.1.0
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
+werkzeug==3.0.1
+
+# Dependencias transitivas fijadas por compatibilidad con las versiones anteriores:
+# - opencv-python-headless 4.9 está compilado contra la ABI de NumPy 1.x
+# - marshmallow-sqlalchemy 1.0 no es compatible con marshmallow 4
+numpy>=1.26,<2
+marshmallow>=3.18,<4
+SQLAlchemy>=2.0.16,<2.1
